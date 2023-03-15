@@ -1,0 +1,33 @@
+parameters:
+   - name: azureServiceConnection
+     type: string
+   - name: resourceGroupName
+     type: string
+   - name: template
+     type: string
+   - name: location
+     type: string
+   - name: logAnalyticsWorkspaceName
+     type: string
+   - name: DataFactoryName
+     type: string
+   - name: repoConfiguration
+     type: string
+   - name: subscriptionId
+     type: string
+steps:
+- task: AzureCLI@2
+  displayName: Upsert Data Factory ${{parameters.DataFactoryName}} 
+  inputs:
+    azureSubscription: ${{parameters.azureServiceConnection}} 
+    scriptType: pscore
+    scriptLocation: inlineScript
+    inlineScript: | 
+                     az deployment group create --resource-group ${{parameters.resourceGroupName}} `
+                              --template-file '$(Build.SourcesDirectory)/${{parameters.template }}' `
+                              --parameters `
+                                dataFactoryName='${{parameters.DataFactoryName }}' `
+                                repoConfiguration='${{parameters.repoConfiguration }}' `
+                                publicNetworkAccess='Enabled' `
+                                logAnalyticsWorkspaceResourceId='/subscriptions/${{parameters.subscriptionId}}/resourceGroups/${{parameters.resourceGroupName}}/providers/Microsoft.OperationalInsights/workspaces/${{parameters.logAnalyticsWorkspaceName}}'
+                                 

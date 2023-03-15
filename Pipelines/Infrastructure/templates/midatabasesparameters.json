@@ -1,0 +1,41 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "managedDatabaseName": {
+            "value": "AzureOrchestration"
+        },
+        "managedInstanceName": {
+            "value": "sqlmi-kpn-dde-dev"
+        },
+        "location": {
+            "value": "westeurope"
+        },
+        "tags": {
+            "value": {}
+        },
+        "restorePointInTime": {
+            "value": "2023-01-11T12:40:39.000Z"
+        },
+        "crossSubscriptionTargetManagedInstanceId": {
+            "value": "/subscriptions/043c11c5-65b1-4d04-b8ad-68a92ddfeeac/resourceGroups/DDE-Acc-rg/providers/Microsoft.Sql/managedInstances/sqlmi-kpn-dde-dev"
+        },
+        "sourceDatabaseId": {
+            "value": "/subscriptions/a9191a1e-480b-42d6-a6ed-c1cc8db25db6/resourceGroups/DDE-Dev-rg/providers/Microsoft.Sql/managedInstances/ddesqldev/databases/AzureOrchestration"
+        },
+        "updateRetention": {
+            "value": true
+        },
+        "shortTermRetention": {
+            "value": 7
+        },
+        "longTermRetention": {
+            "value": {
+                "weeklyRetention": "P8W",
+                "monthlyRetention": "P6W",
+                "yearlyRetention": "P1Y",
+                "weekOfYear": "12"
+            }
+        }
+    }
+}

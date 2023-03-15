@@ -1,0 +1,7 @@
+az deployment group create --resource-group $(resourceGroupName) `
+--template-file '$(Build.SourcesDirectory)/${{variables.templateADF }}' `
+--parameters `
+dataFactoryName='${{variables.DataFactoryName }}' `
+repoConfiguration='${{variables.repoConfiguration }}' `
+publicNetworkAccess='Enabled' `
+logAnalyticsWorkspaceResourceId='/subscriptions/${{variables.subscriptionId}}/resourceGroups/${{variables.resourceGroupName}}/providers/Microsoft.OperationalInsights/workspaces/${{variables.logAnalyticsWorkspaceName}}'

@@ -1,0 +1,44 @@
+parameters:
+   - name: azureServiceConnection
+     type: string
+   - name: resourceGroupName
+     type: string
+   - name: template
+     type: string
+   - name: location
+     type: string
+   - name: managedInstanceName
+     type: string
+   - name: administratorLogin
+     type: string
+   - name: administratorLoginPassword
+     type: string
+   - name: VnetNameMi
+     type: string
+   - name: subnetNameMi
+     type: string
+   - name: skuMIName
+     type: string
+   - name: vCores
+     type: string
+   - name: storageSizeInGB
+     type: string
+steps:
+- task: AzureCLI@2
+  displayName: Upsert SQL MI ${{parameters.managedInstanceName}} 
+  inputs:
+    azureSubscription: ${{parameters.azureServiceConnection}} 
+    scriptType: pscore
+    scriptLocation: inlineScript
+    inlineScript: | 
+                     az deployment group create --resource-group ${{parameters.resourceGroupName}} `
+                              --template-file '$(Build.SourcesDirectory)/${{parameters.template }}' `
+                              --parameters `
+                                  managedInstanceName='${{parameters.managedInstanceName}}' `
+                                  administratorLogin='${{parameters.administratorLogin}}' `
+                                  administratorLoginPassword='${{parameters.administratorLoginPassword}}' `
+                                  virtualNetworkName='${{parameters.VnetNameMi}}' `
+                                  subnetName='${{parameters.subnetNameMi}}' `
+                                  skuName='${{parameters.skuMIName}}' `
+                                  vCores='${{parameters.vCores}}' `
+                                  storageSizeInGB='${{parameters.storageSizeInGB}}'

@@ -1,0 +1,29 @@
+parameters:
+   - name: azureServiceConnection
+     type: string
+   - name: resourceGroupName
+     type: string
+   - name: template
+     type: string
+   - name: location
+     type: string
+   - name: appServicePlanName
+     type: string
+   - name: appServicePlanOsType
+     type: string
+   - name: appServicePlanSku
+     type: string
+steps:
+- task: AzureCLI@2
+  displayName: Upsert App Service Plan ${{parameters.appServicePlanName}} 
+  inputs:
+    azureSubscription: ${{parameters.azureServiceConnection}} 
+    scriptType: pscore
+    scriptLocation: inlineScript
+    inlineScript: | 
+                     az deployment group create --resource-group ${{parameters.resourceGroupName}} `
+                              --template-file '$(Build.SourcesDirectory)/${{parameters.template }}' `
+                              --parameters `
+                                 appServicePlanOsType='${{parameters.appServicePlanOsType}}' `
+                                 appServicePlanName='${{parameters.appServicePlanName}}' `
+                                 appServicePlanSku='${{parameters.appServicePlanSku}}'

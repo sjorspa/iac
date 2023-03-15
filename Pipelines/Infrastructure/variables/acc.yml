@@ -1,0 +1,38 @@
+  variables:
+  # Global
+    vmImageName: 'ubuntu-latest'
+    azureServiceConnection: 'SPN-DDE-DEPLOY-INFRA-ACC'
+    resourceGroupName: 'DDE-Acc-rg'
+    location: 'westeurope'
+    env: 'Acc'
+    subscriptionId: '043c11c5-65b1-4d04-b8ad-68a92ddfeeac'
+
+    # Bicep Templates
+    templateFilestg: 'Pipelines\Infrastructure\templates\storageAccounts.bicep' 
+    templateFilekv: 'Pipelines\Infrastructure\templates\vaults.bicep'
+    templatelogAnalyticsWorkspace: 'Pipelines\Infrastructure\templates\workspaces.bicep'
+    templateAppservicePlan: 'Pipelines\Infrastructure\templates\serverfarms.bicep' 
+
+    # Storage Account
+    stgaccount: 'stkpnddeacc'
+    storageAccountSku: 'Standard_GRS' 
+    storageAccountKind: 'BlobStorage'
+    defaultBlobAccessTier: 'Hot'
+    allowBlobPublicAccess: 'false'
+    storageAccountMinimumTlsVersion: 'TLS1_2' 
+    
+    # Key Vault
+    keyVaultName: 'kv-kpn-dde-acc'
+    skuName: 'standard' 
+    softDeleteRetentionInDays: 90
+    keyVaultnetworkAclsBypass: 'AzureServices'
+
+    # Log Analytics
+    logAnalyticsWorkspaceName: 'log-kpn-dde-acc'
+    retentionInDays: 90
+    sku: 'PerGB2018'
+
+    # App Service Plan
+    appServicePlanOsType: 'windows'
+    appServicePlanName: 'asp-kpn-dde-acc'
+    appServicePlanSku: '{\"name\": \"P1v2\", \"capacity\": 1}'

@@ -1,0 +1,77 @@
+  variables:
+  # Global
+    vmImageName: 'ubuntu-latest'
+    azureServiceConnection: 'SPN-DDE-DEPLOY-INFRA-ACC'
+    resourceGroupName: 'DDE-Acc-rg'
+    location: 'westeurope'
+    env: 'Dev'
+    subscriptionId: '043c11c5-65b1-4d04-b8ad-68a92ddfeeac'
+    SPNGuid: 'e5f81be9-71aa-4bd7-a0fd-aadbc178649c'
+
+    # Bicep Templates
+    templateFilestg: 'Pipelines\Infrastructure\templates\storageAccounts.bicep' 
+    templateFilekv: 'Pipelines\Infrastructure\templates\vaults.bicep'
+    templatelogAnalyticsWorkspace: 'Pipelines\Infrastructure\templates\workspaces.bicep'
+    templateAppservicePlan: 'Pipelines\Infrastructure\templates\serverfarms.bicep' 
+    templateFunctionApp: 'Pipelines\Infrastructure\templates\webApp.bicep' 
+    templateVnet: 'Pipelines\Infrastructure\templates\virtualNetworks.bicep' 
+    templateADF: 'Pipelines\Infrastructure\templates\factories.bicep' 
+    templateVM: 'Pipelines\Infrastructure\templates\virtualMachines.bicep' 
+    templateMI: 'Pipelines\Infrastructure\templates\sqlmanagedinstance.bicep' 
+    
+    # SQL MI
+    managedInstanceName: 'sqlmi-kpn-dde-dev'
+    administratorLogin: 'sjors'
+    administratorLoginPassword: 'HHUlfsdf8792y4982!!!!$$$@@'
+    VnetNameMi: 'vnet-kpn-dde-mi-dev'
+    subnetNameMi: 'sn_sql_mi'
+    skuMIName: 'GP_Gen5'
+    vCores: 8
+    storageSizeInGB: 32
+
+    # Storage Account
+    stgaccount: 'stkpnddedev'
+    storageAccountSku: 'Standard_GRS' 
+    storageAccountKind: 'BlobStorage'
+    defaultBlobAccessTier: 'Hot'
+    allowBlobPublicAccess: 'false'
+    storageAccountMinimumTlsVersion: 'TLS1_2' 
+    scriptcontainer: 'scripts' 
+    scriptPath: './Pipelines/Infrastructure/scripts/install_ir_client.ps1' 
+    
+    # Key Vault
+    keyVaultName: 'kv-kpn-dde-dev'
+    skuName: 'standard' 
+    softDeleteRetentionInDays: 90
+    keyVaultnetworkAclsBypass: 'AzureServices'
+
+    # Log Analytics
+    logAnalyticsWorkspaceName: 'log-kpn-dde-dev'
+    retentionInDays: 90
+    sku: 'PerGB2018'
+
+    # App Service Plan
+    appServicePlanOsType: 'windows'
+    appServicePlanName: 'asp-kpn-dde-dev'
+    appServicePlanSku: '{\"name\": \"P1v2\", \"capacity\": 1}'
+
+    # Azure Function Windows
+    webAppKind : 'windows'
+    appServiceName: 'func-kpn-dde-testing1-dev'
+
+    # Virtual Network
+    virtualNetworkName : 'vnet-kpn-dde-dev'
+    virtualNetworkAddressPrefixes: '[''10.0.0.0/16'']'
+    subnets: '[{\"name\":\"default\",\"properties\":{\"addressPrefix\":\"10.0.0.0/24\"}},{\"name\":\"storage\",\"properties\":{\"addressPrefix\":\"10.0.1.0/24\"}}]'
+
+    # Azure Data Factory
+    DataFactoryName : 'fac-kpn-dde-dev'
+    projectName: 'func-kpn-dde-testing1-dev'
+    repoConfiguration: '{\"accountName\":\"KPN\",\"collaborationBranch\":\"develop\",\"lastCommitId\":\"\",\"repositoryName\":\"DDE-IAC-TMPREPO\",\"projectName\":\"Security%20DDE\",\"rootFolder\":\"/\",\"type\":\"FactoryVSTSConfiguration\"}'
+    IntegrationRuntimeName: 'ir-sh-kpn-dde-dev'
+
+    # Key Vault
+    virtualMachineName: 'kpnddeadfirdev'
+    virtualMachineAdminUsername: 'sjors' 
+    virtualMachineAdminPasswordOrPublicKey: 'HHUlfsdf8792y4982!!!!$$$@@'
+    installFolder: 'irinstallationscript'

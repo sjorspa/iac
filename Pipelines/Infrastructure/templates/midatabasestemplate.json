@@ -1,0 +1,92 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.1",
+    "parameters": {
+        "managedInstanceName": {
+            "type": "string"
+        },
+        "location": {
+            "type": "string"
+        },
+        "managedDatabaseName": {
+            "type": "string"
+        },
+        "createMode": {
+            "type": "string",
+            "defaultValue": "PointInTimeRestore"
+        },
+        "crossSubscriptionTargetManagedInstanceId": {
+            "type": "string"
+        },
+        "sourceDatabaseId": {
+            "type": "string"
+        },
+        "restorePointInTime": {
+            "type": "string"
+        },
+        "tags": {
+            "type": "object",
+            "defaultValue": {},
+            "metadata": {
+                "description": "Resource tags to associate with the database."
+            }
+        },
+        "updateRetention": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Flag indicating that update of retention should happen after database creation."
+            }
+        },
+        "shortTermRetention": {
+            "type": "int",
+            "defaultValue": 7
+        },
+        "longTermRetention": {
+            "type": "object",
+            "defaultValue": {}
+        }
+    },
+    "resources": [
+        {
+            "apiVersion": "2022-05-01-preview",
+            "location": "[parameters('location')]",
+            "name": "[concat(parameters('managedInstanceName'), '/', parameters('managedDatabaseName'))]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "createMode": "[parameters('createMode')]",
+                "crossSubscriptionTargetManagedInstanceId": "[parameters('crossSubscriptionTargetManagedInstanceId')]",
+                "crossSubscriptionSourceDatabaseId": "[parameters('sourceDatabaseId')]",
+                "restorePointInTime": "[parameters('restorePointInTime')]"
+            },
+            "type": "Microsoft.Sql/managedInstances/databases",
+            "resources": [
+                {
+                    "type": "backupLongTermRetentionPolicies",
+                    "apiVersion": "2021-08-01-preview",
+                    "name": "default",
+                    "condition": "[and(parameters('updateRetention'), not(empty(parameters('longTermRetention'))))]",
+                    "dependsOn": [
+                        "[variables('mdbResourceId')]"
+                    ],
+                    "properties": "[parameters('longTermRetention')]"
+                },
+                {
+                    "type": "backupShortTermRetentionPolicies",
+                    "apiVersion": "2021-08-01-preview",
+                    "name": "default",
+                    "condition": "[parameters('updateRetention')]",
+                    "dependsOn": [
+                        "[variables('mdbResourceId')]"
+                    ],
+                    "properties": {
+                        "retentionDays": "[parameters('shortTermRetention')]"
+                    }
+                }
+            ]
+        }
+    ],
+    "variables": {
+        "mdbResourceId": "[resourceId('Microsoft.Sql/managedInstances/databases', parameters('managedInstanceName'), parameters('managedDatabaseName'))]"
+    }
+}

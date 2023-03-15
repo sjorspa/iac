@@ -1,0 +1,49 @@
+parameters:
+   - name: azureServiceConnection
+     type: string
+   - name: resourceGroupName
+     type: string
+   - name: template
+     type: string
+   - name: location
+     type: string
+   - name: logAnalyticsWorkspaceName
+     type: string
+   - name: stgaccount
+     type: string
+   - name: storageAccountSku
+     type: string
+   - name: storageAccountKind
+     type: string
+   - name: defaultBlobAccessTier
+     type: string
+   - name: allowBlobPublicAccess
+     type: string
+   - name: storageAccountMinimumTlsVersion
+     type: string
+   - name: subscriptionId
+     type: string
+steps:
+- task: AzureCLI@2
+  displayName: Upsert Storage Account ${{parameters.stgaccount}} 
+  inputs:
+    azureSubscription: ${{parameters.azureServiceConnection}} 
+    scriptType: pscore
+    scriptLocation: inlineScript
+    inlineScript: | 
+                     az deployment group create --resource-group ${{parameters.resourceGroupName}} `
+                              --template-file '$(Build.SourcesDirectory)/${{parameters.template }}' `
+                              --parameters `
+                                 location='${{parameters.location}}' `
+                                 storageAccountName='${{parameters.stgaccount}}' `
+                                 storageAccountSku='${{parameters.storageAccountSku}}' `
+                                 storageAccountKind='${{parameters.storageAccountKind}}' `
+                                 defaultBlobAccessTier='${{parameters.defaultBlobAccessTier}}' `
+                                 allowBlobPublicAccess='${{parameters.allowBlobPublicAccess}}' `
+                                 storageAccountMinimumTlsVersion='${{parameters.storageAccountMinimumTlsVersion}}' `
+                                 logAnalyticsWorkspaceResourceId='/subscriptions/${{parameters.subscriptionId}}/resourceGroups/${{parameters.resourceGroupName}}/providers/Microsoft.OperationalInsights/workspaces/${{parameters.logAnalyticsWorkspaceName}}'
+
+
+
+
+

@@ -1,0 +1,146 @@
+trigger:
+  - main
+  - develop
+  - feature/functionapp
+name: KPN DDE Infra Deployment
+variables:
+  - ${{if eq(variables['build.SourceBranch'], 'refs/heads/develop') }}:
+      - template: variables/dev.yml
+  - ${{if eq(variables['build.SourceBranch'], 'devselop') }}:
+      - template: variables/acc.yml
+pool:
+  vmImage: "ubuntu-latest"
+stages:
+  - stage: Deploy
+    jobs:
+      - deployment: "Deploy1"
+        environment: "${{variables.env}}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - template: '/Pipelines/Infrastructure/taskscripts/upsert-loganalytics.yml'
+                  parameters:
+                    azureServiceConnection: ${{variables.azureServiceConnection}}
+                    resourceGroupName: ${{variables.resourceGroupName}}
+                    template: ${{variables.templatelogAnalyticsWorkspace}}
+                    location: ${{variables.location}}
+                    logAnalyticsWorkspaceName: ${{variables.logAnalyticsWorkspaceName}}
+                    retentionInDays: ${{variables.retentionInDays}}
+                    sku: ${{variables.sku}}
+                - template: '/Pipelines/Infrastructure/taskscripts/upsert-vnet.yml'
+                  parameters:
+                    azureServiceConnection: ${{variables.azureServiceConnection}}
+                    resourceGroupName: ${{variables.resourceGroupName}}
+                    template: ${{variables.templateVnet}}
+                    location: ${{variables.location}}
+                    virtualNetworkName: ${{variables.virtualNetworkName}}
+                    virtualNetworkAddressPrefixes: ${{variables.virtualNetworkAddressPrefixes}}
+                    subnets: ${{variables.subnets}}
+                    subscriptionId: ${{variables.subscriptionId}}
+                    logAnalyticsWorkspaceName: ${{variables.logAnalyticsWorkspaceName}}
+                - template: '/Pipelines/Infrastructure/taskscripts/upsert-vm.yml'
+                  parameters:
+                    azureServiceConnection: ${{variables.azureServiceConnection}}
+                    resourceGroupName: ${{variables.resourceGroupName}}
+                    template: ${{variables.templateVM}}
+                    location: ${{variables.location}}
+                    virtualMachineName: ${{variables.virtualMachineName}}
+                    virtualMachineAdminUsername: ${{variables.virtualMachineAdminUsername}}
+                    virtualMachineAdminPasswordOrPublicKey: ${{variables.virtualMachineAdminPasswordOrPublicKey}}
+                    virtualNetworkName: ${{variables.virtualNetworkName}}
+                    subscriptionId: ${{variables.subscriptionId}}
+                - template: '/Pipelines/Infrastructure/taskscripts/upsert-appserivceplan.yml'
+                  parameters:
+                    azureServiceConnection: ${{variables.azureServiceConnection}}
+                    resourceGroupName: ${{variables.resourceGroupName}}
+                    template: ${{variables.templateAppservicePlan}}
+                    location: ${{variables.location}}
+                    appServicePlanName: ${{variables.appServicePlanName}}
+                    appServicePlanOsType: ${{variables.appServicePlanOsType}}
+                    appServicePlanSku: ${{variables.appServicePlanSku}}
+                - template: '/Pipelines/Infrastructure/taskscripts/upsert-function-app.yml'
+                  parameters:
+                    azureServiceConnection: ${{variables.azureServiceConnection}}
+                    resourceGroupName: ${{variables.resourceGroupName}}
+                    template: ${{variables.templateFunctionApp}}
+                    location: ${{variables.location}}
+                    appServiceName: ${{variables.appServiceName}}
+                    appServicePlanName: ${{variables.appServicePlanName}}
+                    subscriptionId: ${{variables.subscriptionId}}
+                    logAnalyticsWorkspaceName: ${{variables.logAnalyticsWorkspaceName}}
+                - template: '/Pipelines/Infrastructure/taskscripts/upsert-adf.yml'
+                  parameters:
+                    azureServiceConnection: ${{variables.azureServiceConnection}}
+                    resourceGroupName: ${{variables.resourceGroupName}}
+                    template: ${{variables.templateADF}}
+                    location: ${{variables.location}}
+                    DataFactoryName: ${{variables.DataFactoryName}}
+                    repoConfiguration: ${{variables.repoConfiguration}}
+                    subscriptionId: ${{variables.subscriptionId}}
+                    logAnalyticsWorkspaceName: ${{variables.logAnalyticsWorkspaceName}}
+                - template: '/Pipelines/Infrastructure/taskscripts/upsert-storageaccount.yml'
+                  parameters:
+                    azureServiceConnection: ${{variables.azureServiceConnection}}
+                    resourceGroupName: ${{variables.resourceGroupName}}
+                    template: ${{variables.templateFilestg}}
+                    location: ${{variables.location}}
+                    stgaccount: ${{variables.stgaccount}}
+                    storageAccountSku: ${{variables.storageAccountSku}}
+                    storageAccountKind: ${{variables.storageAccountKind}}
+                    defaultBlobAccessTier: ${{variables.defaultBlobAccessTier}}
+                    allowBlobPublicAccess: ${{variables.allowBlobPublicAccess}}
+                    storageAccountMinimumTlsVersion: ${{variables.storageAccountMinimumTlsVersion}}
+                    subscriptionId: ${{variables.subscriptionId}}
+                    logAnalyticsWorkspaceName: ${{variables.logAnalyticsWorkspaceName}}
+                - template: '/Pipelines/Infrastructure/taskscripts/upsert-keyvault.yml'
+                  parameters:
+                    azureServiceConnection: ${{variables.azureServiceConnection}}
+                    resourceGroupName: ${{variables.resourceGroupName}}
+                    template: ${{variables.templateFilekv}}
+                    location: ${{variables.location}}
+                    keyVaultName: ${{variables.keyVaultName}}
+                    skuName: ${{variables.skuName}}
+                    softDeleteRetentionInDays: ${{variables.softDeleteRetentionInDays}}
+                    keyVaultnetworkAclsBypass: ${{variables.keyVaultnetworkAclsBypass}}
+                    subscriptionId: ${{variables.subscriptionId}}
+                    logAnalyticsWorkspaceName: ${{variables.logAnalyticsWorkspaceName}}
+                - template: '/Pipelines/Infrastructure/taskscripts/provision-adf-agent.yml'
+                  parameters:
+                    azureServiceConnection: ${{variables.azureServiceConnection}}
+                    resourceGroupName: ${{variables.resourceGroupName}}
+                    stgaccount: ${{variables.stgaccount}}
+                    scriptcontainer: ${{variables.scriptcontainer}}
+                    SPNGuid: ${{variables.SPNGuid}}
+                    subscriptionId: ${{variables.subscriptionId}}
+                    scriptPath: ${{variables.scriptPath}}
+                    DataFactoryName: ${{variables.DataFactoryName}}
+                    IntegrationRuntimeName: ${{variables.IntegrationRuntimeName}}
+                    installFolder: ${{variables.installFolder}}
+                    virtualMachineName: ${{variables.virtualMachineName}}
+                - template: '/Pipelines/Infrastructure/taskscripts/upsert-sql-mi.yml'
+                  parameters:
+                    azureServiceConnection: ${{variables.azureServiceConnection}}
+                    resourceGroupName: ${{variables.resourceGroupName}}
+                    template: ${{variables.templateMI}}
+                    location: ${{variables.location}}
+                    managedInstanceName: ${{variables.managedInstanceName}}
+                    administratorLogin: ${{variables.administratorLogin}}
+                    administratorLoginPassword: ${{variables.administratorLoginPassword}}
+                    VnetNameMi: ${{variables.VnetNameMi}}
+                    subnetNameMi: ${{variables.subnetNameMi}}
+                    skuMIName: ${{variables.skuMIName}}
+                    vCores: ${{variables.vCores}}
+                    storageSizeInGB: ${{variables.storageSizeInGB}}
+                - template: '/Pipelines/Infrastructure/taskscripts/set-permissions.yml'
+                  parameters:
+                    azureServiceConnection: ${{variables.azureServiceConnection}}
+                    resourceGroupName: ${{variables.resourceGroupName}}
+                    keyVaultName: ${{variables.keyVaultName}}
+                    DataFactoryName: ${{variables.DataFactoryName}}
+                    stgaccount: ${{variables.stgaccount}}
+                    scriptcontainer: ${{variables.scriptcontainer}}
+                    subscriptionId: ${{variables.subscriptionId}}
+                    managedInstanceName: ${{variables.managedInstanceName}}
+                    appServiceName: ${{variables.appServiceName}}

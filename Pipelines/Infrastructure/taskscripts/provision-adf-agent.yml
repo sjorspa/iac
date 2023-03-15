@@ -1,0 +1,60 @@
+parameters:
+   - name: azureServiceConnection
+     type: string
+   - name: resourceGroupName
+     type: string
+   - name: stgaccount
+     type: string
+   - name: scriptcontainer
+     type: string
+   - name: SPNGuid
+     type: string
+   - name: subscriptionId
+     type: string
+   - name: scriptPath
+     type: string
+   - name: DataFactoryName
+     type: string
+   - name: IntegrationRuntimeName
+     type: string
+   - name: installFolder
+     type: string
+   - name: virtualMachineName
+     type: string
+steps:
+- task: AzureCLI@2
+  displayName: Provision Integration Runtime Host
+  inputs:
+    azureSubscription: ${{parameters.azureServiceConnection}} 
+    scriptType: pscore
+    scriptLocation: inlineScript
+    inlineScript: | 
+                    az config set extension.use_dynamic_install=yes_without_prompt
+                    $keys = (az storage account keys list -g ${{parameters.resourceGroupName}} -n ${{parameters.stgaccount}}) | ConvertFrom-Json
+                    az storage container create -n ${{parameters.scriptcontainer}} --account-name ${{parameters.stgaccount}} --account-key $keys[0].value
+                    az role assignment create `
+                        --role "Storage Blob Data Contributor" `
+                        --assignee ${{parameters.SPNGuid}} `
+                        --scope "/subscriptions/${{parameters.subscriptionId}}/resourceGroups/${{parameters.resourceGroupName}}/providers/Microsoft.Storage/storageAccounts/${{parameters.stgaccount}}/blobServices/default/containers/${{parameters.scriptcontainer}}"
+                    az storage azcopy blob upload -c ${{parameters.scriptcontainer}} --account-name ${{parameters.stgaccount}} -s ${{parameters.scriptPath}} --account-key $keys[0].value
+                    $sastoken = az storage container generate-sas --name ${{parameters.scriptcontainer}} --account-name  ${{parameters.stgaccount}} --https-only --permissions dlrw --account-key $keys[0].value --expiry '2023-1-1'
+                    $FullUrl = "https://${{parameters.stgaccount}}.blob.core.windows.net/${{parameters.scriptcontainer}}/install_ir_client.ps1?$($sastoken.replace('"',''))"
+
+                    az datafactory integration-runtime self-hosted create --factory-name ${{parameters.DataFactoryName}} `
+                                                                        --integration-runtime-name ${{parameters.IntegrationRuntimeName}} `
+                                                                        --resource-group ${{parameters.resourceGroupName}}
+                    $authKeys =az datafactory integration-runtime list-auth-key --factory-name ${{parameters.DataFactoryName}} `
+                                                                                --integration-runtime-name ${{parameters.IntegrationRuntimeName}} `
+                                                                                --resource-group ${{parameters.resourceGroupName}}
+                    $irkeys = $authKeys -join "`n" | ConvertFrom-Json -Depth 50
+                    $irkey = $irkeys[0].authKey1
+                                        
+                    $folder = "${{parameters.installFolder}}"
+                    $command = "New-Item c:\$($folder) -ItemType Directory `n Invoke-WebRequest -Uri '$($FullUrl)' -OutFile c:\$($folder)\install_ir_client.ps1"
+                    $result = az vm run-command invoke -g ${{parameters.resourceGroupName}} -n ${{parameters.virtualMachineName}} --command-id RunPowerShellScript --scripts $command
+                    write-host $result
+                    $expression = 'invoke-Expression ''c:\irinstallationscript\install_ir_client.ps1 -authkey ' + $irkey + ''''
+
+                    $result = az vm run-command invoke -g ${{parameters.resourceGroupName}} -n ${{parameters.virtualMachineName}} --command-id RunPowerShellScript --scripts $expression
+                    write-host $result
+

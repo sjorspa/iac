@@ -1,0 +1,40 @@
+parameters:
+   - name: azureServiceConnection
+     type: string
+   - name: resourceGroupName
+     type: string
+   - name: template
+     type: string
+   - name: location
+     type: string
+   - name: logAnalyticsWorkspaceName
+     type: string
+   - name: keyVaultName
+     type: string
+   - name: skuName
+     type: string
+   - name: softDeleteRetentionInDays
+     type: string
+   - name: keyVaultnetworkAclsBypass
+     type: string
+   - name: subscriptionId
+     type: string
+steps:
+- task: AzureCLI@2
+  displayName: Upsert keyVaultName ${{parameters.keyVaultName}} 
+  inputs:
+    azureSubscription: ${{parameters.azureServiceConnection}} 
+    scriptType: pscore
+    scriptLocation: inlineScript
+    inlineScript: | 
+                     az deployment group create --resource-group ${{parameters.resourceGroupName}} `
+                              --template-file '$(Build.SourcesDirectory)/${{parameters.template }}' `
+                              --parameters `
+                                 location='${{parameters.location}}' `
+                                 keyVaultName='${{parameters.keyVaultName}}' `
+                                 logAnalyticsWorkspaceResourceId='/subscriptions/${{parameters.subscriptionId}}/resourceGroups/${{parameters.resourceGroupName}}/providers/Microsoft.OperationalInsights/workspaces/${{parameters.logAnalyticsWorkspaceName}}' `
+                                 skuName='${{parameters.skuName}}' `
+                                 softDeleteRetentionInDays='${{parameters.softDeleteRetentionInDays}}' `
+                                 keyVaultnetworkAclsBypass='${{parameters.keyVaultnetworkAclsBypass}}'
+
+

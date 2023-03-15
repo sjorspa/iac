@@ -1,0 +1,30 @@
+parameters:
+   - name: azureServiceConnection
+     type: string
+   - name: resourceGroupName
+     type: string
+   - name: template
+     type: string
+   - name: location
+     type: string
+   - name: logAnalyticsWorkspaceName
+     type: string
+   - name: retentionInDays
+     type: string
+   - name: sku
+     type: string
+steps:
+- task: AzureCLI@2
+  displayName: Upsert Loganalytics ${{parameters.logAnalyticsWorkspaceName}} 
+  inputs:
+    azureSubscription: ${{parameters.azureServiceConnection}} 
+    scriptType: pscore
+    scriptLocation: inlineScript
+    inlineScript: | 
+                     az deployment group create --resource-group ${{parameters.resourceGroupName}} `
+                              --template-file '$(Build.SourcesDirectory)/${{parameters.template }}' `
+                              --parameters `
+                                 location='${{parameters.location}}' `
+                                 logAnalyticsWorkspaceName='${{parameters.logAnalyticsWorkspaceName}}' `
+                                 retentionInDays='${{parameters.retentionInDays}}' `
+                                 sku='${{parameters.sku}}'

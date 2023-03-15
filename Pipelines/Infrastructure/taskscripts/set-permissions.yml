@@ -1,0 +1,41 @@
+parameters:
+   - name: azureServiceConnection
+     type: string
+   - name: resourceGroupName
+     type: string
+   - name: keyVaultName
+     type: string
+   - name: DataFactoryName
+     type: string
+   - name: stgaccount
+     type: string
+   - name: scriptcontainer
+     type: string
+   - name: subscriptionId
+     type: string
+   - name: managedInstanceName
+     type: string
+   - name: appServiceName
+     type: string
+
+
+steps:
+- task: AzureCLI@2
+  displayName: Set Permissions
+  inputs:
+    azureSubscription: ${{parameters.azureServiceConnection}} 
+    scriptType: pscore
+    scriptLocation: inlineScript
+    inlineScript: | 
+                    $adfID = (az resource list --name ${{parameters.DataFactoryName}} --resource-group ${{parameters.resourceGroupName}}  | ConvertFrom-Json -Depth 50).Identity.PrincipalId
+                    az keyvault set-policy -n ${{parameters.keyVaultName}} --secret-permissions get list --object-id $adfID
+                    az role assignment create --assignee $adfID `
+                        --role "Storage Blob Data Contributor" `
+                        --scope "/subscriptions/${{parameters.subscriptionId}}/resourceGroups/${{parameters.resourceGroupName}}/providers/Microsoft.Storage/storageAccounts/${{parameters.stgaccount}}/blobServices/${{parameters.scriptcontainer}}"
+                    az role assignment create --assignee $adfID `
+                        --role "Contributor" `
+                        --scope "/subscriptions/${{parameters.subscriptionId}}/resourceGroups/${{parameters.resourceGroupName}}/providers/Microsoft.Sql/managedInstances/${{parameters.managedInstanceName}}"
+                    az role assignment create --assignee $adfID `
+                        --role "Contributor" `
+                        --scope "/subscriptions/${{parameters.subscriptionId}}/resourceGroups/${{parameters.resourceGroupName}}/providers/Microsoft.Web/sites/${{parameters.appServiceName}}"
+                        
